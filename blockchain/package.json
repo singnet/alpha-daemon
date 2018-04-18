@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "fs-extra": "5.0.0",
+    "truffle": "4.1.5",
+    "truffle-contract": "3.0.4",
+    "truffle-hdwallet-provider": "0.0.3",
+    "ganache-cli": "6.1.0"
+  },
+  "dependencies": {
+    "singularitynet-alpha-blockchain": "1.1.0"
+  },
+  "scripts": {
+    "migrate-dev": "node_modules/.bin/truffle migrate --network local",
+    "create-agent-dev": "node_modules/.bin/truffle exec scripts/createAndRegisterAgent.js --network local",
+    "create-job-dev": "node_modules/.bin/truffle exec scripts/createJob.js --network local",
+    "sign-job-dev": "node_modules/.bin/truffle exec scripts/signJobInvocation.js --network local",
+    "fund-job-dev": "node_modules/.bin/truffle exec scripts/fundJob.js --network local"
+  }
+}

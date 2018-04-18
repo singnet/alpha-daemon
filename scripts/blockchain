@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+import os
+import pathlib
+import shutil
+import subprocess
+import sys
+
+
+def main():
+    assert len(sys.argv) > 1, "please select a target from 'install-dev', 'install-prod', 'bootstrap', clean"
+    target = sys.argv[1]
+    blockchain_path = pathlib.Path(__file__).absolute().parent.parent.joinpath("blockchain")
+    blockchain_build_path = blockchain_path.joinpath("build")
+    blockchain_node_path = blockchain_path.joinpath("node_modules")
+    agent_json_src_path = blockchain_node_path.joinpath("singularitynet-alpha-blockchain", "Agent.json")
+    agent_json_dest_path = pathlib.Path(__file__).absolute().parent.parent.joinpath("snetd_alpha", "resources",
+                                                                                    "Agent.json")
+    if target == "install-dev":
+        subprocess.call(["npm", "install"], cwd=blockchain_path)
+        shutil.copy(agent_json_src_path, agent_json_dest_path)
+    elif target == "install-prod":
+        subprocess.call(["npm", "install", "--production"], cwd=blockchain_path)
+        shutil.copy(agent_json_src_path, agent_json_dest_path)
+    elif target == "bootstrap":
+        subprocess.call(["npm", "run", "migrate-dev"], cwd=blockchain_path)
+        subprocess.call(["npm", "run", "create-agent-dev"], cwd=blockchain_path)
+        subprocess.call(["npm", "run", "create-job-dev"], cwd=blockchain_path)
+        subprocess.call(["npm", "run", "fund-job-dev"], cwd=blockchain_path)
+        subprocess.call(["npm", "run", "sign-job-dev"], cwd=blockchain_path)
+    elif target == "uninstall":
+        try:
+            shutil.rmtree(blockchain_node_path)
+            os.remove(agent_json_dest_path)
+        except FileNotFoundError:
+            pass
+    elif target == "clean":
+        try:
+            shutil.rmtree(blockchain_build_path)
+        except FileNotFoundError:
+            pass
+
+
+if __name__ == "__main__":
+    main()
