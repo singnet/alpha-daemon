@@ -2,21 +2,20 @@ import json
 import logging
 import os
 import sys
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-SERVER_PORT = 5000
-ETH_NODE_ENDPOINT = "http://127.0.0.1:8545"
-AGENT_CONTRACT_JSON_PATH = Path(__file__).absolute().parent.joinpath("resources", "Agent.json")
-AGENT_ADDRESS = "0x781f6d9066007bbf3de18c1ba00d96a270e02c30"
-SERVICE_ENDPOINT = "http://127.0.0.1:5001"
+DAEMON_LISTENING_PORT = 5000
+ETHEREUM_JSON_RPC_ENDPOINT = ""
+AGENT_CONTRACT_ADDRESS = ""
+PASSTHROUGH_ENDPOINT = ""
 PASSTHROUGH_ENABLED = False
 BLOCKCHAIN_ENABLED = True
 DB_PATH = "snetd"
 LOG_LEVEL = 10
-HDWALLET_MNEMONIC = "orphan wheel horse track deer rotate crew heart satoshi abstract modify warrior"
-HDWALLET_INDEX = 4
+PRIVATE_KEY = ""
+HDWALLET_MNEMONIC = ""
+HDWALLET_INDEX = 0
 POLL_SLEEP_SECS = 5
 CONFIG_PATH = "snetd.config"
 

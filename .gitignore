@@ -1,8 +1,9 @@
 .idea/
 blockchain/node_modules/
 blockchain/build/
-*__pycache__/
-*snetd.db*
+__pycache__/
+snetd.db
+snetd.config
 dist/
 snetd_alpha/resources/Agent.json
 venv/

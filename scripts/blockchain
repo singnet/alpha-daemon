@@ -8,7 +8,7 @@ import sys
 
 
 def main():
-    assert len(sys.argv) > 1, "please select a target from 'install-dev', 'install-prod', 'bootstrap', clean"
+    assert len(sys.argv) > 1, "please select a target from 'install', 'uninstall', 'bootstrap-agent', 'bootstrap-job', 'clean'"
     target = sys.argv[1]
     blockchain_path = pathlib.Path(__file__).absolute().parent.parent.joinpath("blockchain")
     blockchain_build_path = blockchain_path.joinpath("build")
@@ -16,18 +16,18 @@ def main():
     agent_json_src_path = blockchain_node_path.joinpath("singularitynet-alpha-blockchain", "Agent.json")
     agent_json_dest_path = pathlib.Path(__file__).absolute().parent.parent.joinpath("snetd_alpha", "resources",
                                                                                     "Agent.json")
-    if target == "install-dev":
+    if target == "install":
         subprocess.call(["npm", "install"], cwd=blockchain_path)
         shutil.copy(agent_json_src_path, agent_json_dest_path)
-    elif target == "install-prod":
-        subprocess.call(["npm", "install", "--production"], cwd=blockchain_path)
-        shutil.copy(agent_json_src_path, agent_json_dest_path)
-    elif target == "bootstrap":
-        subprocess.call(["npm", "run", "migrate-dev"], cwd=blockchain_path)
-        subprocess.call(["npm", "run", "create-agent-dev"], cwd=blockchain_path)
-        subprocess.call(["npm", "run", "create-job-dev"], cwd=blockchain_path)
-        subprocess.call(["npm", "run", "fund-job-dev"], cwd=blockchain_path)
-        subprocess.call(["npm", "run", "sign-job-dev"], cwd=blockchain_path)
+    elif target == "create-mnemonic":
+        subprocess.call(["npm", "run", "create-mnemonic"], cwd=blockchain_path)
+    elif target == "bootstrap-agent":
+        subprocess.call(["npm", "run", "migrate"], cwd=blockchain_path)
+        subprocess.call(["npm", "run", "create-agent"], cwd=blockchain_path)
+    elif target == "bootstrap-job":
+        subprocess.call(["npm", "run", "create-job"], cwd=blockchain_path)
+        subprocess.call(["npm", "run", "fund-job"], cwd=blockchain_path)
+        subprocess.call(["npm", "run", "sign-job"], cwd=blockchain_path)
     elif target == "uninstall":
         try:
             shutil.rmtree(blockchain_node_path)

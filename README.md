@@ -24,7 +24,7 @@ $ cd alpha-daemon
 
 * Install development/test blockchain dependencies
 ```bash
-$ ./scripts/blockchain install-dev
+$ ./scripts/blockchain install
 ```
 
 * Install the package in development/editable mode
@@ -35,13 +35,16 @@ $ pip install -e .
 ### Testing
 
 A simple test script has been setup that does the following
-1. Runs a [ganache-cli](https://github.com/trufflesuite/ganache-cli) test RPC with a predetermined mnemonic for account
-generation
-2. Runs an instance of snetd
+1. Generates a [bip39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) mnemonic
+2. Runs a [ganache-cli](https://github.com/trufflesuite/ganache-cli) test RPC with the generated mnemonic
 3. Deploys the required network singleton contracts (SingularityNetToken, AgentFactory, Registry) and
-creates an Agent contract instance at a predetermined address
-4. Creates and funds a Job contract instance at a predetermined address
-5. Calls the RPC passthrough on the daemon using the predetermined job address and job signature
+creates an Agent contract instance
+4. Writes a daemon configuration file with the Agent contract address, generated mnemonic, and test RPC endpoint
+5. Runs an instance of snetd
+6. Creates and funds a Job contract instance
+7. Signs the job invocation
+8. Calls the RPC passthrough on the daemon using the predetermined job address and job signature
+9. Cleans up
 
 * Invoke the test script
 ```bash
