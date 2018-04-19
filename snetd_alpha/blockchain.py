@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import json
 import logging
+from pathlib import Path
 
 import bip32utils
 import ecdsa
@@ -18,26 +19,33 @@ class BlockchainClient:
         self.app = app
 
         # Configure web3
-        if config.ETH_NODE_ENDPOINT.startswith("ws:"):
-            provider = WebsocketProvider(config.ETH_NODE_ENDPOINT)
+        if config.ETHEREUM_JSON_RPC_ENDPOINT.startswith("ws:"):
+            provider = WebsocketProvider(config.ETHEREUM_JSON_RPC_ENDPOINT)
         else:
-            provider = HTTPProvider(config.ETH_NODE_ENDPOINT)
+            provider = HTTPProvider(config.ETHEREUM_JSON_RPC_ENDPOINT)
         self.w3 = Web3(provider)
         self.w3.eth.enable_unaudited_features()  # Pending security audit, but required for offline signing of txns
 
         # Setup agent contract
-        with open(config.AGENT_CONTRACT_JSON_PATH) as f:
+        with open(Path(__file__).absolute().parent.joinpath("resources", "Agent.json")) as f:
             abi = json.load(f)["abi"]
-            self.agent = self.w3.eth.contract(address=self.to_checksum_address(config.AGENT_ADDRESS), abi=abi)
+            self.agent = self.w3.eth.contract(address=self.to_checksum_address(config.AGENT_CONTRACT_ADDRESS), abi=abi)
 
-        # Derive keys
-        master_key = bip32utils.BIP32Key.fromEntropy(Mnemonic("english").to_seed(config.HDWALLET_MNEMONIC))
-        purpose_subtree = master_key.ChildKey(44 + bip32utils.BIP32_HARDEN)
-        coin_type_subtree = purpose_subtree.ChildKey(60 + bip32utils.BIP32_HARDEN)
-        account_subtree = coin_type_subtree.ChildKey(bip32utils.BIP32_HARDEN)
-        change_subtree = account_subtree.ChildKey(0)
-        account = change_subtree.ChildKey(config.HDWALLET_INDEX)
-        self.private_key = account.PrivateKey()
+        if config.PRIVATE_KEY and config.PRIVATE_KEY != "":
+            if config.PRIVATE_KEY.startswith("0x"):
+                self.private_key = bytes(bytearray.fromhex(config.PRIVATE_KEY[2:]))
+            else:
+                self.private_key = bytes(bytearray.fromhex(config.PRIVATE_KEY))
+        else:
+            # Derive key
+            master_key = bip32utils.BIP32Key.fromEntropy(Mnemonic("english").to_seed(config.HDWALLET_MNEMONIC))
+            purpose_subtree = master_key.ChildKey(44 + bip32utils.BIP32_HARDEN)
+            coin_type_subtree = purpose_subtree.ChildKey(60 + bip32utils.BIP32_HARDEN)
+            account_subtree = coin_type_subtree.ChildKey(bip32utils.BIP32_HARDEN)
+            change_subtree = account_subtree.ChildKey(0)
+            account = change_subtree.ChildKey(config.HDWALLET_INDEX)
+            self.private_key = account.PrivateKey()
+
         public_key = ecdsa.SigningKey.from_string(string=self.private_key,
                                                   curve=ecdsa.SECP256k1,
                                                   hashfunc=hashlib.sha256).get_verifying_key()

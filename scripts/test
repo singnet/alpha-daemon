@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import pathlib
 import subprocess
 
@@ -8,32 +9,68 @@ import time
 
 from snetd_alpha import configuration as config
 
+TEST_DAEMON_CONFIGURATION = {
+    "ETHEREUM_JSON_RPC_ENDPOINT": "http://127.0.0.1:8545",
+    "HDWALLET_INDEX": 4
+}
+
 
 def main():
-    scripts_path = pathlib.Path(__file__).absolute().parent
-    node_path = pathlib.Path(__file__).absolute().parent.parent.joinpath("blockchain", "node_modules")
-    root_path = scripts_path.parent
-    subprocess.call(["./blockchain", "install-dev"], cwd=scripts_path)
-    ganache_p = subprocess.Popen(
-        ["./.bin/ganache-cli", "-m", "orphan wheel horse track deer rotate crew heart satoshi abstract modify warrior"],
-        cwd=node_path)
+    root_path = pathlib.Path(__file__).absolute().parent.parent
+    scripts_path = root_path.joinpath("scripts")
+    blockchain_path = root_path.joinpath("blockchain")
+    node_path = blockchain_path.joinpath("node_modules")
+    build_state_path = blockchain_path.joinpath("build", "state")
+
+    # Cleanup db, build state, config
+    subprocess.call(["rm", "-rf", config.DB_PATH + ".db"], cwd=root_path)
+    subprocess.call(["rm", "-rf", config.CONFIG_PATH], cwd=root_path)
     subprocess.call(["./blockchain", "clean"], cwd=scripts_path)
-    subprocess.call(["rm", "-rf", "snetd.db"], cwd=root_path)
+
+    # Install dependencies, create mnemonic
+    subprocess.call(["./blockchain", "install"], cwd=scripts_path)
+    subprocess.call(["./blockchain", "create-mnemonic"], cwd=scripts_path)
+    with open(build_state_path.joinpath("Mnemonic.json")) as f:
+        TEST_DAEMON_CONFIGURATION["HDWALLET_MNEMONIC"] = json.load(f)["Mnemonic"]
+
+    # Start test RPC with mnemonic
+    ganache_p = subprocess.Popen(["./.bin/ganache-cli", "-m", TEST_DAEMON_CONFIGURATION["HDWALLET_MNEMONIC"]],
+                                 cwd=node_path)
+
+    # Get Agent contract deployed and recorded
+    subprocess.call(["./blockchain", "bootstrap-agent"], cwd=scripts_path)
+    with open(build_state_path.joinpath("AgentAddress.json")) as f:
+        TEST_DAEMON_CONFIGURATION["AGENT_CONTRACT_ADDRESS"] = json.load(f)["Agent"]
+
+    # Write daemon configuration
+    with open(root_path.joinpath(config.CONFIG_PATH), 'w') as f:
+        json.dump(TEST_DAEMON_CONFIGURATION, f)
+
+    # Start daemon
     snetd_p = subprocess.Popen(["snetd"], cwd=root_path)
-    subprocess.call(["./blockchain", "bootstrap"], cwd=scripts_path)
+
+    # Get Job contract deployed, funded, signed
+    subprocess.call(["./blockchain", "bootstrap-job"], cwd=scripts_path)
+    with open(build_state_path.joinpath("JobAddress.json")) as f:
+        job_address = json.load(f)["Job"]
+    with open(build_state_path.joinpath("JobInvocation.json")) as f:
+        job_signature = json.load(f)["Signature"]
 
     time.sleep(config.POLL_SLEEP_SECS * 1.5)
 
     try:
-        jsonrpcclient.request("http://127.0.0.1:{}".format(config.SERVER_PORT), "whatever",
-                              job_address="0x6b366d0aba92a794dec62032b0f5b5a9f2e23fb7",
-                              job_signature="0x0c75552adad204dfc53e8354c4b31a0af31b99eefdfff7620d517efcbab799d07c14794e39f413a4e4db5dbdf9a9be0af53cc7fc5d290959402e510d89d7e59e01")
+        jsonrpcclient.request("http://127.0.0.1:{}".format(config.DAEMON_LISTENING_PORT), "whatever",
+                              job_address=job_address,
+                              job_signature=job_signature)
+
         time.sleep(config.POLL_SLEEP_SECS * 1.5)
     except Exception as e:
         print(e)
-    subprocess.call(["rm", "-rf", "snetd.db"], cwd=root_path)
-    snetd_p.terminate()
-    ganache_p.terminate()
+    finally:
+        snetd_p.terminate()
+        ganache_p.terminate()
+        subprocess.call(["rm", "-rf", config.CONFIG_PATH], cwd=root_path)
+        subprocess.call(["rm", "-rf", config.DB_PATH + ".db"], cwd=root_path)
 
 
 if __name__ == "__main__":

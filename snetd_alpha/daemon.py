@@ -60,14 +60,14 @@ class SingularityNetDaemon:
         )
 
     def run(self):
-        web.run_app(self.app, host="0.0.0.0", port=config.SERVER_PORT)
+        web.run_app(self.app, host="0.0.0.0", port=config.DAEMON_LISTENING_PORT)
 
     def create_passthrough(self, method):
         client = PassthroughClient()
 
         async def simple_passthrough(**kwargs):
             logger.debug("dispatching request to service")
-            response = client.request(config.SERVICE_ENDPOINT, method, **kwargs)
+            response = client.request(config.PASSTHROUGH_ENDPOINT, method, **kwargs)
             logger.debug("returning response to client")
             return response
 
@@ -84,7 +84,7 @@ class SingularityNetDaemon:
 
             if await self.chain.validate_job_invocation(job_address, job_signature):
                 logger.debug("dispatching request to service; job_address: %s", job_address)
-                response = client.request(config.SERVICE_ENDPOINT, method, **kwargs)
+                response = client.request(config.PASSTHROUGH_ENDPOINT, method, **kwargs)
                 db = self.app["db"]
                 job_entry = db.get(job_address, {})
                 job_entry["job_signature"] = job_signature
