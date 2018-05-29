@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='snetd-alpha',
-    version='0.0.1',
+    version='0.1.0',
     packages=['snetd_alpha'],
     scripts=['bin/snetd'],
     url='https://github.com/singnet/alpha-daemon',
