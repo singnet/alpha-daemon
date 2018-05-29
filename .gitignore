@@ -8,4 +8,5 @@ dist/
 snetd_alpha/resources/Agent.json
 venv/
 snetd_alpha.egg-info/
+build/
 

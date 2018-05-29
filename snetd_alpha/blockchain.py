@@ -73,7 +73,7 @@ class BlockchainClient:
         h = self.w3.soliditySha3(['string', 'bytes32'],
                                  ["\x19Ethereum Signed Message:\n32", self.w3.sha3(hexstr=job_address)])
         if (db_entry.get("state", "") == "FUNDED" and
-                self.w3.eth.account.recover(h, (v, r, s)) == db_entry.get("consumer", "")):
+                self.w3.eth.account.recoverHash(h, (v, r, s)) == db_entry.get("consumer", "")):
             logger.debug("validated job locally; job_address: %s", job_address)
             return True
 

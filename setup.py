@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='snetd-alpha',
-    version='1.0.1',
+    version='0.0.1',
     packages=['snetd_alpha'],
     scripts=['bin/snetd'],
     url='https://github.com/singnet/alpha-daemon',
@@ -11,14 +11,14 @@ setup(
     author_email='info@singularitynet.io',
     description='SingularityNET Alpha Daemon',
     install_requires=[
-        'aiohttp',
-        'aiohttp_cors',
-        'jsonrpcserver',
-        'jsonrpcclient',
-        'web3',
-        'mnemonic',
-        'bip32utils',
-        'ecdsa'
+        'aiohttp==3.2.1',
+        'aiohttp_cors==0.7.0',
+        'jsonrpcserver==3.5.4',
+        'jsonrpcclient==2.5.2',
+        'web3==4.2.1',
+        'mnemonic==0.18',
+        'bip32utils==0.3.post3',
+        'ecdsa==0.13'
     ],
     include_package_data=True
 )
