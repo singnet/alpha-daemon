@@ -18,7 +18,7 @@ setup(
         'web3==4.2.1',
         'mnemonic==0.18',
         'bip32utils==0.3.post3',
-        'ecdsa==0.13'
+        'ecdsa==0.13.3'
     ],
     include_package_data=True
 )
